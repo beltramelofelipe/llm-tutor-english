@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: english-tutor-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - db_data:/app/data
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=sqlite:///./data/english_tutor.db
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  frontend:
+    image: node:20-alpine
+    container_name: english-tutor-frontend
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  db_data:
